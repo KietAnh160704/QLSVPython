@@ -3,10 +3,17 @@ from . import models, schemas
 
 
 def get_student(db: Session, student_id: int):
+
+    return db.query(models.Student).all()
+
+def get_students(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Student).all()
+
     return db.query(models.Student).filter(models.Student.id == student_id).first()
 
 def get_students(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.Student).offset(skip).limit(limit).all()
+
 
 def create_student(db: Session, student: schemas.StudentCreate):
     db_student = models.Student(
