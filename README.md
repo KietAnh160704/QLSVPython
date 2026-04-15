@@ -12,5 +12,5 @@ Du an nay su dung SQLite.
 ## Chay du an
 
 ```powershell
-```python -m uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload
 
