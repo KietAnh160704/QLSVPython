@@ -16,24 +16,24 @@ DATABASE_FILE = Path("student_management.db")
 app = FastAPI()
 
 
-def initialize_database():
-    try:
-        models.Base.metadata.create_all(bind=engine)
-    except DatabaseError:
-        engine.dispose()
+# def initialize_database():
+#     try:
+#         models.Base.metadata.create_all(bind=engine)
+#     except DatabaseError:
+#         engine.dispose()
 
-        if DATABASE_FILE.exists():
-            backup_name = DATABASE_FILE.with_name(
-                f"{DATABASE_FILE.stem}.corrupt.{datetime.now():%Y%m%d_%H%M%S}{DATABASE_FILE.suffix}"
-            )
-            DATABASE_FILE.replace(backup_name)
+#         if DATABASE_FILE.exists():
+#             backup_name = DATABASE_FILE.with_name(
+#                 f"{DATABASE_FILE.stem}.corrupt.{datetime.now():%Y%m%d_%H%M%S}{DATABASE_FILE.suffix}"
+#             )
+#             DATABASE_FILE.replace(backup_name)
 
-        models.Base.metadata.create_all(bind=engine)
+#         models.Base.metadata.create_all(bind=engine)
 
 
-@app.on_event("startup")
-def on_startup():
-    initialize_database()
+# @app.on_event("startup")
+# def on_startup():
+#     initialize_database()
 
 
 def get_db():
@@ -64,4 +64,4 @@ if os.path.exists("static"):
 
 @app.get("/")
 def read_index():
-    return FileResponse('static/student.html')
+    return FileResponse('static/index.html')
