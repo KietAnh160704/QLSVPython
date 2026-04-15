@@ -1,16 +1,39 @@
 from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import Session
+from datetime import datetime
+from pathlib import Path
 import os
 
 from . import models, schemas, crud
 from .database import engine, SessionLocal
 
 
-models.Base.metadata.create_all(bind=engine)
+DATABASE_FILE = Path("student_management.db")
 
 app = FastAPI()
+
+
+def initialize_database():
+    try:
+        models.Base.metadata.create_all(bind=engine)
+    except DatabaseError:
+        engine.dispose()
+
+        if DATABASE_FILE.exists():
+            backup_name = DATABASE_FILE.with_name(
+                f"{DATABASE_FILE.stem}.corrupt.{datetime.now():%Y%m%d_%H%M%S}{DATABASE_FILE.suffix}"
+            )
+            DATABASE_FILE.replace(backup_name)
+
+        models.Base.metadata.create_all(bind=engine)
+
+
+@app.on_event("startup")
+def on_startup():
+    initialize_database()
 
 
 def get_db():
