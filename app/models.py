@@ -8,3 +8,5 @@ class Student(Base):
     student_code = Column(String, unique=True, index=True) 
     fullname = Column(String)
     gpa = Column(Float)
+    department = Column(String)
+    major = Column(String)

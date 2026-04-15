@@ -1,8 +1,11 @@
+from fastapi import HTTPException
 from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 import os
+from fastapi import FastAPI, Depends, HTTPException
+
 
 from . import models, schemas, crud
 from .database import engine, SessionLocal
@@ -34,6 +37,13 @@ def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)
 def delete_student(student_id: int, db: Session = Depends(get_db)):
     crud.delete_student(db, student_id)
     return {"message": "Success"}
+
+@app.put("/students/{student_id}", response_model=schemas.StudentResponse)
+def update_student(student_id: int, student: schemas.StudentCreate, db: Session = Depends(get_db)):
+    updated_student = crud.update_student(db, student_id , student)
+    if updated_student is None:
+        raise HTTPException(status_code = 404, detail = 'Không tinmf thấy sinh viên')
+    return updated_student
 
 
 if os.path.exists("static"):
