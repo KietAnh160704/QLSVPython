@@ -5,6 +5,8 @@ class StudentCreate(BaseModel):
     student_code: str
     fullname: str
     gpa: float
+    department: Optional[str] = None 
+    major: Optional[str] = None
 
 
 
