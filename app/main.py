@@ -64,4 +64,4 @@ if os.path.exists("static"):
 
 @app.get("/")
 def read_index():
-    return FileResponse('static/index.html')
+    return FileResponse('static/student.html')

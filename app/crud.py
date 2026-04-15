@@ -27,3 +27,17 @@ def delete_student(db: Session, student_id: int):
         db.commit()
         return True
     return False
+
+def get_teachers(db: Session):
+    return db.query(models.Teacher).all()
+
+def create_teacher(db: Session, teacher: schemas.TeacherCreate):
+    db_teacher = models.Teacher(
+        teacher_code=teacher.teacher_code,
+        fullname=teacher.fullname,
+        subject=teacher.subject
+    )
+    db.add(db_teacher)
+    db.commit()
+    db.refresh(db_teacher)
+    return db_teacher

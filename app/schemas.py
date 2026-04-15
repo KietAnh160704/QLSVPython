@@ -16,3 +16,13 @@ class StudentResponse(StudentCreate):
 
 
 
+class TeacherCreate(BaseModel):
+    teacher_code: str
+    fullname: str
+    subject: str
+
+class TeacherResponse(TeacherCreate):
+    id: int
+
+    class Config:
+        from_attributes = True
