@@ -14,7 +14,7 @@
         <div class="row g-3">
             <div class="col"><input type="text" id="code" class="form-control" placeholder="MSSV"></div>
             <div class="col"><input type="text" id="name" class="form-control" placeholder="Họ tên"></div>
-            <div class="col"><input type="number" id="gpa" class="form-control" placeholder="GPA" step="0.1"></div>
+            <div class="col"><input type="number" id="gpa" class="form-control" min = "0.1" max = "4.0" placeholder="GPA" step="0.1" ></div>
             <div class="col"><button onclick="addStudent()" class="btn btn-primary">Thêm mới</button></div>
         </div>
     </div>
@@ -47,6 +47,14 @@
         }
 
         async function addStudent() {
+            const gpaInput = document.getElementById('gpa');
+            const gpa = parseFloat(gpaInput.value);
+
+            if (isNaN(gpa) || gpa < 0.1 || gpa > 4.0) {
+                alert("GPA phải nằm trong khoảng 0.1 - 4.0");
+                gpaInput.focus();
+                return;
+            }
             const payload = {
                 student_code: document.getElementById('code').value,
                 fullname: document.getElementById('name').value,
