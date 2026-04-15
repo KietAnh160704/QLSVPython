@@ -96,11 +96,13 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label font-weight-bold">MSSV</label>
-                        <input type="text" id="add-code" class="form-control" placeholder="Ví dụ: 228060...">
+                        <input type="text" id="add-code" class="form-control" placeholder="Ví dụ: 228060...." maxlength="10" inputmode="numeric" pattern="\d{10}" title="MSSV phải gồm đúng 10 chữ số">
+                        <div id="add-code-error" class="text-danger small mt-1"></div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Họ tên</label>
-                        <input type="text" id="add-name" class="form-control" placeholder="Nhập tên đầy đủ">
+                        <input type="text" id="add-name" class="form-control" placeholder="Nhập tên đầy đủ" pattern="^[^\d]+$" title="Họ tên không được chứa số">
+                        <div id="add-name-error" class="text-danger small mt-1"></div>
                     </div>
                 </div>
                 <div class="row">
@@ -114,9 +116,11 @@
                     </div>
                     <div class="col-md-2 mb-3">
                         <label class="form-label">GPA</label>
-                        <input type="number" id="add-gpa" class="form-control" step="0.1" placeholder="0.0">
+                        <input type="number" id="add-gpa" class="form-control" step="0.1" min="0.1" max="4.0">
+                        <div id="add-gpa-error" class="text-danger small mt-1"></div>
                     </div>
                 </div>
+                <div id="add-form-message" class="text-danger small mt-1"></div>
                 <div class="d-flex gap-2 mt-3">
                     <button class="btn btn-primary px-4" onclick="addStudent()">Lưu lại</button>
                     <button class="btn btn-secondary" onclick="showPage('list-page')">Hủy bỏ</button>
@@ -132,11 +136,13 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">MSSV</label>
-                        <input type="text" id="edit-code" class="form-control">
+                        <input type="text" id="edit-code" class="form-control" maxlength="10" inputmode="numeric" pattern="\d{10}" title="MSSV phải gồm đúng 10 chữ số">
+                        <div id="edit-code-error" class="text-danger small mt-1"></div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Họ tên</label>
-                        <input type="text" id="edit-name" class="form-control">
+                        <input type="text" id="edit-name" class="form-control" pattern="^[^\d]+$" title="Họ tên không được chứa số">
+                        <div id="edit-name-error" class="text-danger small mt-1"></div>
                     </div>
                 </div>
                 <div class="row">
@@ -150,9 +156,11 @@
                     </div>
                     <div class="col-md-2 mb-3">
                         <label class="form-label">GPA</label>
-                        <input type="number" id="edit-gpa" class="form-control" step="0.1">
+                        <input type="number" id="edit-gpa" class="form-control" step="0.1" min="0.1" max="4.0">
+                        <div id="edit-gpa-error" class="text-danger small mt-1"></div>
                     </div>
                 </div>
+                <div id="edit-form-message" class="text-danger small mt-1"></div>
                 <div class="d-flex gap-2 mt-3">
                     <button class="btn btn-warning px-4" onclick="updateStudent()">Cập nhật</button>
                     <button class="btn btn-secondary" onclick="showPage('list-page')">Hủy bỏ</button>
@@ -164,6 +172,97 @@
 
     <script>
         let allStudents = [];
+
+        function setFieldError(errorId, message) {
+            const errorEl = document.getElementById(errorId);
+            if (errorEl) {
+                errorEl.textContent = message || '';
+            }
+        }
+
+        function setFormMessage(formMessageId, message) {
+            const messageEl = document.getElementById(formMessageId);
+            if (messageEl) {
+                messageEl.textContent = message || '';
+            }
+        }
+
+        function clearValidationMessages(prefix) {
+            setFieldError(`${prefix}-code-error`, '');
+            setFieldError(`${prefix}-name-error`, '');
+            setFieldError(`${prefix}-gpa-error`, '');
+            setFormMessage(`${prefix}-form-message`, '');
+        }
+
+        function sanitizeStudentCodeInput(inputElement) {
+            inputElement.value = String(inputElement.value || '').replace(/\D/g, '').slice(0, 10);
+        }
+
+        function sanitizeFullnameInput(inputElement) {
+            const sanitized = String(inputElement.value || '').replace(/[^\p{L}\s]/gu, '');
+            inputElement.value = sanitized.replace(/\s{2,}/g, ' ');
+        }
+
+        function attachInputGuards() {
+            ['add-code', 'edit-code'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', () => sanitizeStudentCodeInput(input));
+                }
+            });
+
+            ['add-name', 'edit-name'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', () => sanitizeFullnameInput(input));
+                }
+            });
+        }
+
+        function validateStudentInput(code, fullname, gpa, prefix) {
+            const trimmedCode = String(code || '').trim();
+            const trimmedName = String(fullname || '').trim();
+            const codeRegex = /^\d{10}$/;
+            let isValid = true;
+
+            clearValidationMessages(prefix);
+
+            if (!codeRegex.test(trimmedCode)) {
+                setFieldError(`${prefix}-code-error`, 'MSSV phải gồm đúng 10 chữ số.');
+                isValid = false;
+            }
+
+            if (!trimmedName) {
+                setFieldError(`${prefix}-name-error`, 'Họ tên không được để trống.');
+                isValid = false;
+            }
+
+            if (!Number.isFinite(gpa) || gpa < 0.1 || gpa > 4.0) {
+                setFieldError(`${prefix}-gpa-error`, 'GPA phải trong khoảng từ 0.1 đến 4.0.');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        async function fetchWithValidation(url, options) {
+            const res = await fetch(url, options);
+            if (!res.ok) {
+                let errorMessage = 'Dữ liệu không hợp lệ hoặc có lỗi từ máy chủ.';
+                try {
+                    const errorData = await res.json();
+                    if (Array.isArray(errorData?.detail)) {
+                        errorMessage = errorData.detail.map(item => item.msg).join('\n');
+                    } else if (typeof errorData?.detail === 'string') {
+                        errorMessage = errorData.detail;
+                    }
+                } catch (error) {
+                    // Keep default error message when response body is not JSON.
+                }
+                throw new Error(errorMessage);
+            }
+            return res;
+        }
 
         function normalizeText(value) {
             return String(value ?? '').toLowerCase().trim();
@@ -242,25 +341,38 @@
         }
 
         async function addStudent() {
+            const studentCode = document.getElementById('add-code').value;
+            const fullname = document.getElementById('add-name').value;
+            const gpa = parseFloat(document.getElementById('add-gpa').value);
+
+            if (!validateStudentInput(studentCode, fullname, gpa, 'add')) {
+                return;
+            }
+
             const payload = {
-                student_code: document.getElementById('add-code').value,
-                fullname: document.getElementById('add-name').value,
-                gpa: parseFloat(document.getElementById('add-gpa').value),
+                student_code: studentCode.trim(),
+                fullname: fullname.trim(),
+                gpa: gpa,
                 department: document.getElementById('add-dept').value,
                 major: document.getElementById('add-major').value
             };
-            await fetch('/students/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            showPage('list-page');
-            // Reset form
-            document.getElementById('add-code').value = '';
-            document.getElementById('add-name').value = '';
-            document.getElementById('add-dept').value = '';
-            document.getElementById('add-major').value = '';
-            document.getElementById('add-gpa').value = '';
+            try {
+                await fetchWithValidation('/students/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                showPage('list-page');
+                // Reset form
+                document.getElementById('add-code').value = '';
+                document.getElementById('add-name').value = '';
+                document.getElementById('add-dept').value = '';
+                document.getElementById('add-major').value = '';
+                document.getElementById('add-gpa').value = '';
+                clearValidationMessages('add');
+            } catch (error) {
+                setFormMessage('add-form-message', error.message);
+            }
         }
 
         function goEditPage(id, code, name, gpa, dept, major) {
@@ -275,19 +387,32 @@
 
         async function updateStudent() {
             const id = document.getElementById('edit-id').value;
+            const studentCode = document.getElementById('edit-code').value;
+            const fullname = document.getElementById('edit-name').value;
+            const gpa = parseFloat(document.getElementById('edit-gpa').value);
+
+            if (!validateStudentInput(studentCode, fullname, gpa, 'edit')) {
+                return;
+            }
+
             const payload = {
-                student_code: document.getElementById('edit-code').value,
-                fullname: document.getElementById('edit-name').value,
-                gpa: parseFloat(document.getElementById('edit-gpa').value),
+                student_code: studentCode.trim(),
+                fullname: fullname.trim(),
+                gpa: gpa,
                 department: document.getElementById('edit-dept').value,
                 major: document.getElementById('edit-major').value
             };
-            await fetch(`/students/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            showPage('list-page');
+            try {
+                await fetchWithValidation(`/students/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                clearValidationMessages('edit');
+                showPage('list-page');
+            } catch (error) {
+                setFormMessage('edit-form-message', error.message);
+            }
         }
 
         async function deleteStudent(id) {
@@ -297,6 +422,7 @@
             }
         }
 
+        attachInputGuards();
         loadStudents();
     </script>
 </body>
