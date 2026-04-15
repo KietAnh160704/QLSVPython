@@ -19,6 +19,31 @@
             color: #495057;
             border: 1px solid #ced4da;
         }
+
+        .search-wrap {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .search-input {
+            border-radius: 999px;
+            padding-left: 16px;
+            border: 1px solid #ced4da;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+        }
+
+        .search-count {
+            font-size: 0.9rem;
+            color: #6c757d;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -37,6 +62,16 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3>Danh sách Sinh viên</h3>
                 <button class="btn btn-success" onclick="showPage('add-page')">+ Thêm sinh viên</button>
+            </div>
+            <div class="search-wrap mb-3">
+                <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">🔍</span>
+                        <input type="text" id="search" class="form-control search-input border-start-0" placeholder="Tìm theo MSSV, họ tên, khoa, ngành, GPA..." oninput="filterStudents()">
+                        <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">Xóa lọc</button>
+                    </div>
+                    <span id="search-count" class="search-count">0 kết quả</span>
+                </div>
             </div>
             <div class="card shadow-sm overflow-hidden">
                 <table class="table table-hover mb-0">
@@ -128,17 +163,32 @@
     </div>
 
     <script>
+        let allStudents = [];
+
+        function normalizeText(value) {
+            return String(value ?? '').toLowerCase().trim();
+        }
+
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             if (pageId === 'list-page') loadStudents();
         }
 
-        async function loadStudents() {
-            const res = await fetch('/students/');
-            const data = await res.json();
+        function updateSearchCount(currentCount, totalCount) {
+            const countEl = document.getElementById('search-count');
+            countEl.textContent = `${currentCount} / ${totalCount} kết quả`;
+        }
+
+        function renderStudents(students) {
             const list = document.getElementById('student-list');
-            list.innerHTML = data.map(s => `
+            if (!students.length) {
+                list.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Không có sinh viên phù hợp</td></tr>';
+                updateSearchCount(0, allStudents.length);
+                return;
+            }
+
+            list.innerHTML = students.map(s => `
                 <tr>
                     <td><strong>${s.student_code}</strong></td>
                     <td>${s.fullname}</td>
@@ -148,11 +198,47 @@
                     </td>
                     <td><span class="badge bg-primary fs-6">${s.gpa}</span></td>
                     <td>
-                        <button class="btn btn-outline-warning btn-sm" onclick="goEditPage(${s.id}, '${s.student_code}', '${s.fullname}', ${s.gpa}, '${s.department}', '${s.major}')">Sửa</button>
+                        <button class="btn btn-outline-warning btn-sm" onclick='goEditPage(${s.id}, ${JSON.stringify(s.student_code)}, ${JSON.stringify(s.fullname)}, ${s.gpa}, ${JSON.stringify(s.department)}, ${JSON.stringify(s.major)})'>Sửa</button>
                         <button class="btn btn-outline-danger btn-sm" onclick="deleteStudent(${s.id})">Xóa</button>
                     </td>
                 </tr>
             `).join('');
+
+            updateSearchCount(students.length, allStudents.length);
+        }
+
+        async function loadStudents() {
+            const res = await fetch('/students/');
+            allStudents = await res.json();
+            filterStudents();
+        }
+
+        function filterStudents() {
+            const keyword = normalizeText(document.getElementById('search').value);
+            if (!keyword) {
+                renderStudents(allStudents);
+                return;
+            }
+
+            const filtered = allStudents.filter(student => {
+                return [
+                    student.id,
+                    student.student_code,
+                    student.fullname,
+                    student.gpa,
+                    student.department,
+                    student.major
+                ].some(field => normalizeText(field).includes(keyword));
+            });
+
+            renderStudents(filtered);
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('search');
+            searchInput.value = '';
+            filterStudents();
+            searchInput.focus();
         }
 
         async function addStudent() {
