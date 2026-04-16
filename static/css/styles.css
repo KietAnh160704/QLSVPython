@@ -1,0 +1,38 @@
+.page {
+    display: none;
+}
+
+.active {
+    display: block;
+}
+
+.badge-major {
+    background-color: #e9ecef;
+    color: #495057;
+    border: 1px solid #ced4da;
+}
+
+.search-wrap {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.search-input {
+    border-radius: 999px;
+    padding-left: 16px;
+    border: 1px solid #ced4da;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.search-input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.search-count {
+    font-size: 0.9rem;
+    color: #6c757d;
+    white-space: nowrap;
+}
