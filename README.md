@@ -1,10 +1,16 @@
-QLSVPython
+# QLSVPython
+
 Du an quan ly sinh vien su dung FastAPI va SQLAlchemy.
 
-Database
+## Database
+
 Du an nay su dung SQLite.
 
-File database: student_management.db
-SQLAlchemy URL: sqlite:///./student_management.db
-Chay du an
+- File database: `student_management.db`
+- SQLAlchemy URL: `sqlite:///./student_management.db`
+
+## Chay du an
+
+```powershell
 python -m uvicorn app.main:app --reload
+
